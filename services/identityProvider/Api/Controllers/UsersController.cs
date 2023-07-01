@@ -1,16 +1,15 @@
 ﻿using Data.Entities;
+using Domain.Models;
 using Microsoft.AspNetCore.Mvc;
 using SvcCommon.Abstract;
 using SvcCommon.Concrete;
 
 namespace Api.Controllers;
 
-[Route("api/[controller]")]
-[ApiController]
 [Produces("application/json")]
-public class IdentityController : GenericController<User>
+public class UsersController : GenericController<UserViewModel>
 {
-    public IdentityController(IRepository<User> repository) : base(repository)
+    public UsersController(IRepository<UserViewModel> repository) : base(repository)
     {
     }
 }

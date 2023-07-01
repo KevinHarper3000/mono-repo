@@ -1,25 +1,39 @@
-WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+using Api;
+using Serilog;
+using SimpleInjector;
 
-// Add services to the container.
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .CreateBootstrapLogger();
 
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+Log.Information("Starting up");
 
-WebApplication app = builder.Build();
+Container container = new();
+container.Options.ResolveUnregisteredConcreteTypes = false;
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+try
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+    builder.Host.UseSerilog((HostBuilderContext ctx, LoggerConfiguration lc) => lc
+        .WriteTo.Console(
+            outputTemplate:
+            "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}")
+        .Enrich.FromLogContext()
+        .ReadFrom.Configuration(ctx.Configuration));
+
+    WebApplication app = builder
+        .ConfigureServices(builder.Configuration, container)
+        .ConfigurePipeline();
+
+    app.Run();
 }
-
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
-app.MapControllers();
-
-app.Run();
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Unhandled exception");
+}
+finally
+{
+    Log.Information("Shut down complete");
+    Log.CloseAndFlush();
+}

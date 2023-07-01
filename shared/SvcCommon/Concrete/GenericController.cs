@@ -21,8 +21,8 @@ public class GenericController<TModel> : Controller
         return Ok(response);
     }
 
-    [HttpGet("{id:int}")]
-    public virtual async Task<ActionResult<TModel>> Get(int id)
+    [HttpGet("{id:Guid}")]
+    public virtual async Task<ActionResult<TModel>> Get(Guid id)
     {
         TModel response = await repository.GetByIdAsync(id);
         return Ok(response);
@@ -43,7 +43,7 @@ public class GenericController<TModel> : Controller
     }
 
     [HttpDelete("{id}")]
-    public virtual async Task<ActionResult> Delete(int id)
+    public virtual async Task<ActionResult> Delete(Guid id)
     {
         await repository.DeleteAsync(id);
         return NoContent();

@@ -1,11 +1,13 @@
-﻿using AutoMapper;
+﻿using System.Collections;
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using SvcCommon.Abstract;
 
 namespace SvcCommon.Concrete;
 
-public class BaseRepository<TModel, TEntity> : IRepository<TModel> where TModel : class where TEntity : class
+public class BaseRepository<TModel, TEntity> : IRepository<TModel>
+    where TModel : class where TEntity : class
 {
     private const string InvalidOperationExceptionMessage = "The item could not be found.";
     private readonly IBaseContext context;
@@ -34,7 +36,7 @@ public class BaseRepository<TModel, TEntity> : IRepository<TModel> where TModel 
         await context.SaveChangesAsync(null);
     }
 
-    public virtual async Task DeleteAsync(int id)
+    public virtual async Task DeleteAsync(Guid id)
     {
         TEntity? toDelete = await context.Set<TEntity>().FindAsync(id);
 
@@ -59,9 +61,9 @@ public class BaseRepository<TModel, TEntity> : IRepository<TModel> where TModel 
         return MapToModel(entity);
     }
 
-    public virtual async Task<TModel> GetByIdAsync(int id)
+    public virtual async Task<TModel> GetByIndexAsync(int index)
     {
-        TEntity entity = await context.Set<TEntity>().FindAsync(id) ??
+        TEntity entity = await context.Set<TEntity>().FindAsync(index) ??
                          throw new InvalidOperationException(InvalidOperationExceptionMessage);
         return MapToModel(entity);
     }
