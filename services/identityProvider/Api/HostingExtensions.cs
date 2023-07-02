@@ -20,20 +20,14 @@ internal static class HostingExtensions
     {
         app.UseSerilogRequestLogging();
 
-        if (app.Environment.IsDevelopment())
-        {
-            app.UseDeveloperExceptionPage();
-            app.UseSwagger();
-            app.UseSwaggerUI();
-        }
-
-        // uncomment if you want to add a UI
+        ConfigureForDev(app);
+        
         app.UseStaticFiles();
         app.UseRouting();
 
         //app.UseIdentityServer();
 
-        app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+        app.MapControllers();
 
         // uncomment if you want to add a UI
         //app.UseAuthorization();
@@ -45,28 +39,19 @@ internal static class HostingExtensions
     public static WebApplication ConfigureServices(this WebApplicationBuilder builder,
         IConfiguration configuration, Container container)
     {
-        // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
 
-        builder.Services.AddIdentityServer()
-            .AddInMemoryIdentityResources(Config.IdentityResources)
-            .AddInMemoryApiScopes(Config.ApiScopes)
-            .AddInMemoryClients(Config.Clients);
-
-        //builder.Services.AddScoped<ILocalUserService, LocalUserService>();
-
-        MySqlServerVersion serverVersion = new(new Version(8, 0, 27));
-        string connection = GetConnectionString(configuration);
-
-        builder.Services.AddDbContext<IdpContext>(options =>
-            options.UseMySql(connection, serverVersion).EnableSensitiveDataLogging());
+        AddIdentityConfiguration(builder);
+        ConfigurePersistence(builder, configuration);
 
         builder.Services.AddControllers().AddNewtonsoftJson(options =>
             options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
 
         //uncomment if you want to add a UI
         //builder.Services.AddRazorPages();
+
+        //builder.Services.AddScoped<ILocalUserService, LocalUserService>();
 
         builder.Services.AddSimpleInjector(container, options =>
         {
@@ -75,7 +60,6 @@ internal static class HostingExtensions
         });
 
         builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-
 
         //builder.AddProfileService<>();
 
@@ -103,6 +87,34 @@ internal static class HostingExtensions
         return builder.Build();
     }
 
+    private static void ConfigureForDev(WebApplication app)
+    {
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseDeveloperExceptionPage();
+            app.UseSwagger();
+            app.UseSwaggerUI();
+        }
+    }
+
+    private static void AddIdentityConfiguration(WebApplicationBuilder builder)
+    {
+        builder.Services.AddIdentityServer()
+            .AddInMemoryIdentityResources(Config.IdentityResources)
+            .AddInMemoryApiScopes(Config.ApiScopes)
+            .AddInMemoryClients(Config.Clients);
+    }
+
+    private static void ConfigurePersistence(WebApplicationBuilder builder,
+        IConfiguration configuration)
+    {
+        MySqlServerVersion serverVersion = new(new Version(8, 0, 27));
+        string connection = GetConnectionString(configuration);
+
+        builder.Services.AddDbContext<IdpContext>(options =>
+            options.UseMySql(connection, serverVersion).EnableSensitiveDataLogging());
+    }
+
     private static string GetConnectionString(IConfiguration configuration)
     {
         StringBuilder connection = new();
@@ -121,7 +133,8 @@ internal static class HostingExtensions
         container.Register<Profile, IdentityProfiles>(Lifestyle.Scoped);
 
         container
-            .RegisterConditional<IRepository<UserViewModel>, BaseRepository<UserViewModel, User>>(
+            .RegisterConditional<IRepository<UserViewModel>,
+            BaseRepository<UserViewModel, User>>(
                 x => x.Consumer.ImplementationType == typeof(UsersController));
         container
             .RegisterConditional<IRepository<UserClaimViewModel>,
