@@ -1,3 +1,3 @@
 # mono-repo
 
-Beginnings of an authentication/authorization demo app with an API secured via Duende Identity Server.
+Beginnings of an IDP service via Duende Identity Server, with secured API and demo app.
