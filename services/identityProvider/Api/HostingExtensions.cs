@@ -29,10 +29,6 @@ internal static class HostingExtensions
 
         app.MapControllers();
 
-        // uncomment if you want to add a UI
-        //app.UseAuthorization();
-        //app.MapRazorPages().RequireAuthorization();
-
         return app;
     }
 
@@ -48,9 +44,6 @@ internal static class HostingExtensions
         builder.Services.AddControllers().AddNewtonsoftJson(options =>
             options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
 
-        //uncomment if you want to add a UI
-        //builder.Services.AddRazorPages();
-
         //builder.Services.AddScoped<ILocalUserService, LocalUserService>();
 
         builder.Services.AddSimpleInjector(container, options =>
@@ -60,27 +53,6 @@ internal static class HostingExtensions
         });
 
         builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-
-        //builder.AddProfileService<>();
-
-        //builder.Services.AddAuthentication()
-        //    .AddOpenIdConnect("oidc", "Demo IdentityServer", options =>
-        //    {
-        //        options.SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme;
-        //        options.SignOutScheme = IdentityServerConstants.SignoutScheme;
-        //        options.SaveTokens = true;
-
-        //        options.Authority = "https://localhost:5001";
-        //        options.ClientId = "web";
-        //        options.ClientSecret = "secret";
-        //        options.ResponseType = "code";
-
-        //        options.TokenValidationParameters = new TokenValidationParameters
-        //        {
-        //            NameClaimType = "name",
-        //            RoleClaimType = "role"
-        //        };
-        //    });
 
         InitializeContainer(container);
 
